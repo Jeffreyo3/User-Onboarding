@@ -1,26 +1,49 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { withFormik, Form, Field } from 'formik';
+import * as Yup from 'yup';
+import axios from 'axios';
 
-
-const UserForm = ({values}) => {
-
+const UserForm = ({values, errors, touched, status}) => {
+    const [users, setUsers] = useState([]);
+    useEffect(() => {
+        if (status) {
+            setUsers({...users, status});
+        }
+    }, [status]);
 
     return (
         <div>
             <Form className="user-form">
                 <Field type="text" name="name" placeholder="Name" />
+                {touched.name && errors.name && (
+                    <p className="error">{errors.name}</p>
+                )}
                 <Field type="email" name="email" placeholder="Email Address" />
+                {touched.email && errors.email && (
+                    <p className="error">{errors.email}</p>
+                )}
                 <Field type="text" name="password" placeholder="Password" />
+                {touched.password && errors.password && (
+                    <p className="error">{errors.password}</p>
+                )}
                 <label className="checkbox-container">
                     I agree to the Terms of Service
                     <Field type="checkbox" name="termsOfService" checked={values.termsOfService} />
+                    {touched.termsOfService && errors.termsOfService && (
+                        <p className="error">{errors.termsOfService}</p>
+                    )}
                 </label>
-                <button>Submit!</button>
+                <button type="submit">Submit!</button>
             </Form>
+            {users.map(user => (
+                <ul key={user.id}>
+                    <li>Name: {user.name}</li>
+                    <li>Email: {user.email}</li>
+                    <li>Password: {user.password}</li>
+                    <li>Terms of Service: {user.termsOfService}</li>
+                </ul>
+            ))}
         </div>
-
-
-
     );
 }
 
@@ -34,8 +57,26 @@ const FormikUserForm = withFormik({
         };
     },
 
-    handleSubmit(values) {
-        console.log(values);
+    validationSchema: Yup.object().shape({
+        name: Yup.string().required(),
+        email: Yup.string().required(),
+        password: Yup.string().required(),
+        termsOfService: Yup.bool()
+            .test(
+                "consent",
+                "You have to agree with our Terms and Conditions!",
+                value => value === true
+            )
+            .required("You have to agree with our Terms and Conditions!")
+    }),
+
+    handleSubmit(values, { setStatus }) {
+        axios
+            .post('https://reqres.in/api/users', values)
+            .then(results => {
+                setStatus(results.data);
+            })
+            .catch(err=> console.log(err.reults));
     }
 })(UserForm);
 
