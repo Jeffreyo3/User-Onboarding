@@ -4,10 +4,15 @@ import * as Yup from 'yup';
 import axios from 'axios';
 
 const UserForm = ({values, errors, touched, status}) => {
-    const [users, setUsers] = useState([]);
+    const [users, setUsers] = useState([{
+        name: "first",
+        email: "email@email.com",
+        password: "pass",
+        termsOfService: true
+    }]);
     useEffect(() => {
         if (status) {
-            setUsers({...users, status});
+            setUsers([...users, status]);
         }
     }, [status]);
 
@@ -35,10 +40,11 @@ const UserForm = ({values, errors, touched, status}) => {
                 </label>
                 <button type="submit">Submit!</button>
             </Form>
-
+            <div>
             {users.map(user => (
                 <p key={user.name}>{user.name}</p>
             ))}
+            </div>
         </div>
     );
 };
@@ -72,7 +78,7 @@ const FormikUserForm = withFormik({
             .then(results => {
                 setStatus(results.data);
             })
-            .catch(err=> console.log(err.reults));
+            .catch(err=> console.log(err.results));
     }
 })(UserForm);
 
